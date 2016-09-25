@@ -12,3 +12,7 @@ export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_INSTALL/lib/native
 export HADOOP_OPTS="-Djava.library.path=$HADOOP_INSTALL/lib"
 #HADOOP END
 
+#HBASE START
+export HBASE_HOME=/usr/local/hbase-1.2.2
+export PATH=$PATH:/usr/local/hbase-1.2.2/bin
+#HBASE END

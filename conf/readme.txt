@@ -4,7 +4,7 @@ Configurations are troublesome but indispensable.
 //following are setups and configurations I did
 
 
-//1.setups and configurations for Hadoop
+//1.setups for Hadoop
 
 sudo adduser hadoop
 sudo usermod -G sudo hadoop
@@ -20,7 +20,7 @@ vim /home/hadoop/.bashrc  (add some paths at the end of .bashrc)
 source ~/.bashrc
 
 
-//2.setups and configurations for HBase(pseudo-distribution mode)
+//2.configurations for Hadoop(pseudo-distribution mode)
 
 cd /usr/local/hadoop/etc/hadoop
 vim core-site.xml
@@ -39,7 +39,7 @@ check http://localhost:8088  for ResourceManager web ui page
 check http://localhost:50070 for HDFS web ui page
 
 
-// a word count test
+//3.a word count test
 
 hadoop dfs -mkdir /user
 hadoop dfs -mkdir /user/hadoop
@@ -52,5 +52,30 @@ hadoop dfs -cat /user/hadoop/output/*  (check the results of word counting)
 stop-dfs.sh
 stop-yarn.sh
 
+
+//4.setups and configurations for HBase(pseudo-distribution mode)
+
+//download HBase-1.2.2 from apache's web
+vim hbase-site.xml
+vim ${HBASE_HOME}/conf/hbase-env.sh
+
+
+//5.start HBase
+
+start-dfs.sh
+start-yarn.sh
+start-hbase.sh
+jps  // (NameNode + SecondaryNameNode + DataNode) + (ResourceManager + NodeManager) + (HMaster + HRegionServer + HQuorumPeer)
+
+hbase shell
+create 'testTable','cf'
+...
+...
+
+
+//6.the end
+stop-hbase.sh
+stop-dfs.sh
+stop-yarn.sh
 
 
