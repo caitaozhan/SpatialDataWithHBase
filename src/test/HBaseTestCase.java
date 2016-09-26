@@ -5,33 +5,38 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
 
 public class HBaseTestCase
 {
-	//static HBase Configuration
+	//static HBase Configuration, /conf/hbase-site.xml
 	static Configuration cfg = HBaseConfiguration.create();
 	
-	//create a table through HBaseAdmin HTableDescription
+	//create a table
 	public static void create(String tablename, String columnFamily) throws Exception
 	{
-		HBaseAdmin admin = new HBaseAdmin(cfg);
-		if(admin.tableExists(tablename))
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Admin admin = connection.getAdmin();
+		TableName tableName = TableName.valueOf(tablename);
+		if(admin.tableExists(tableName))
 		{
 			System.out.println("table Exists!");
 			System.exit(0);
 		}
 		else
 		{
-			HTableDescriptor tableDesc = new HTableDescriptor(tablename);
+			HTableDescriptor tableDesc = new HTableDescriptor(tableName);
 			tableDesc.addFamily(new HColumnDescriptor(columnFamily));
 			admin.createTable(tableDesc);
 			System.out.println("create table success!");
@@ -41,16 +46,19 @@ public class HBaseTestCase
 	//add an entry of data through HTable Put
 	public static void put(String tablename, String row, String columnFamily, String column, String data) throws Exception
 	{
-		HTable table = new HTable(cfg, tablename);
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Table table = connection.getTable(TableName.valueOf(tablename));
 		Put p1 = new Put(Bytes.toBytes(row));
-		p1.add(Bytes.toBytes(columnFamily), Bytes.toBytes(column), Bytes.toBytes(data));
+		p1.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), Bytes.toBytes(data));
 		table.put(p1);
 		System.out.println("put '" + row + "','" + columnFamily + column + "','" + data + "'");
+		connection.close();
 	}
 	
 	public static void get(String tablename, String row) throws IOException
 	{
-		HTable table = new HTable(cfg, tablename);
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Table table = connection.getTable(TableName.valueOf(tablename));
 		Get g = new Get(Bytes.toBytes(row));
 		Result result = table.get(g);
 		System.out.println("Get: " + result);
@@ -59,7 +67,8 @@ public class HBaseTestCase
 	//show all data, through HTable Scan
 	public static void scan(String tablename) throws IOException
 	{
-		HTable table = new HTable(cfg, tablename);
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Table table = connection.getTable(TableName.valueOf(tablename));
 		Scan s = new Scan();
 		ResultScanner rs = table.getScanner(s);
 		for(Result r : rs)
@@ -70,13 +79,15 @@ public class HBaseTestCase
 	
 	public static boolean delete(String tablename) throws IOException
 	{
-		HBaseAdmin admin = new HBaseAdmin(cfg);
-		if(admin.tableExists(tablename))
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Admin admin = connection.getAdmin();
+		TableName tableName = TableName.valueOf(tablename);
+		if(admin.tableExists(tableName))
 		{
 			try
 			{
-				admin.disableTable(tablename);
-				admin.deleteTable(tablename);
+				admin.disableTable(tableName);
+				admin.deleteTable(tableName);
 			}
 			catch(Exception ex)
 			{
@@ -89,7 +100,7 @@ public class HBaseTestCase
 	
 	public static void main(String [] args)
 	{
-		String tablename = "hbase_tb";
+		String tablename = "hbase_tb2";
 		String columnFamily = "cf";
 		try
 		{
