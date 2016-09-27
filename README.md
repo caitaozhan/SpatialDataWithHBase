@@ -7,6 +7,6 @@ Operating system: deepin-15.2 (the best Linux distribution contributed by Chines
 
 Database: HBase-1.2.2
 
-File system: HDFS-2.6.4
+File system: HDFS-2.6.4 (pseudo-distribution mode)
 
 Programming language: Java
