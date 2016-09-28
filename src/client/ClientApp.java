@@ -3,6 +3,7 @@ package client;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import hbase.*;
 
 public class ClientApp
 {
@@ -18,8 +19,10 @@ public class ClientApp
  * @author Caitao Zhan (caitaozhan@163.com)
  * @see <a href="https://github.com/caitaozhan/SpatialDataWithHBase">Github</a>
  */
-class HBaseClient extends JFrame implements Runnable
+class HBaseClient extends JFrame
 {
+	@SuppressWarnings("unused")
+	private HBase caitaoHBase;
 	private static final long serialVersionUID = -2346534561072742542L;
 	private JLabel myLabel;
 	private JTextField editNumPoints;
@@ -44,6 +47,8 @@ class HBaseClient extends JFrame implements Runnable
 
 	private void init() throws Exception
 	{
+		caitaoHBase = new HBase();
+		
 		myLabel = new JLabel("随机产生");
 		editNumPoints = new JTextField(6);
 		editNumPoints.setEditable(true);
@@ -72,30 +77,13 @@ class HBaseClient extends JFrame implements Runnable
 				{ //e.getButton就会返回点鼠标的那个键，左键还是右健，3代表右键
 					Point point = new Point();
 					point.setX(e.getX());
-		            point.setY(e.getY());
-		            point.calibrate2Clickable();
+					point.setY(e.getY());
+					point.calibrate2Clickable();
 					System.out.println(point);  // 校准
 				}
 			}
 		});
 
-		thread = new Thread(this); // 创建线程
-		thread.start();
-	}
-
-	public void run()
-	{
-		while (true)
-		{
-			try
-			{
-//				Thread.sleep(2000);
-//				System.out.println("hehe");
-			}
-			catch (Exception e)
-			{
-			}
-		}
 	}
 
 	protected void processWindowEvent(WindowEvent e)
@@ -127,6 +115,16 @@ class HBaseClient extends JFrame implements Runnable
 			{
 				try
 				{
+					String str = editNumPoints.getText();
+					int number = Integer.parseInt(str);
+					for (int i = 0; i < number; ++i)
+					{
+						
+					}
+				}
+				catch (NumberFormatException exception) 
+				{
+					exception.printStackTrace();
 				}
 				catch (Exception exception)
 				{
