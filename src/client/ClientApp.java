@@ -24,13 +24,13 @@ class HBaseClient extends JFrame
 	@SuppressWarnings("unused")
 	private HBase caitaoHBase;
 	private static final long serialVersionUID = -2346534561072742542L;
-	private JLabel myLabel;
-	private JTextField editNumPoints;
+	private JTextField editInsertNumber;
+	private JButton insertButton;
+
 	private JTextField queryResults;
 	private JButton queryButton;
 	private JPanel panelNorth;
 	private JPanel panelSouth;
-	private JButton insertButton;
 	Thread thread;
 
 	public HBaseClient()
@@ -50,21 +50,22 @@ class HBaseClient extends JFrame
 	{
 		caitaoHBase = new HBase();
 
-		myLabel = new JLabel("随机产生");
-		editNumPoints = new JTextField(6);
-		editNumPoints.setEditable(true);
 		panelNorth = new JPanel();
-		panelNorth.add(myLabel);
-		panelNorth.add(editNumPoints);
+		editInsertNumber = new JTextField();
+		editInsertNumber.setEditable(true);
+		panelNorth.setLayout(new GridLayout(1, 2));
+		panelNorth.add(editInsertNumber);
 		panelNorth.add(getInsertButton());
-
+	
+		
 		queryResults = new JTextField(10);
 		queryResults.setEditable(true);
 		panelSouth = new JPanel();
+		panelSouth.setLayout(new GridLayout(1, 2));
 		panelSouth.add(queryResults);
 		panelSouth.add(getQueryButton());
 
-		setBounds(400, 100, 500, 500);
+		setBounds(100, 10, 1200, 700);
 		setTitle("HBase Client -- 詹才韬");
 		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
@@ -91,6 +92,26 @@ class HBaseClient extends JFrame
 
 	}
 
+	private JButton getInsertButton()
+	{
+		if (insertButton == null) // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
+		{
+			insertButton = new JButton("Input an integer N, then put N random (x, y) into HBase");
+			insertButton.addActionListener((ActionEvent e) ->
+			{
+				try
+				{
+					
+				}
+				catch (Exception exception)
+				{
+					exception.printStackTrace();
+				}
+			});
+		}
+		return insertButton;
+	}
+	
 	protected void processWindowEvent(WindowEvent e)
 	{
 		super.processWindowEvent(e);
@@ -109,35 +130,6 @@ class HBaseClient extends JFrame
 		{
 			exception.printStackTrace();
 		}
-	}
-
-	private JButton getInsertButton()
-	{
-		if (insertButton == null) // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
-		{
-			insertButton = new JButton("个二维坐标，并插入HBase");
-			insertButton.addActionListener((ActionEvent e) ->
-			{
-				try
-				{
-					String str = editNumPoints.getText();
-					int number = Integer.parseInt(str);
-					for (int i = 0; i < number; ++i)
-					{
-
-					}
-				}
-				catch (NumberFormatException exception)
-				{
-					exception.printStackTrace();
-				}
-				catch (Exception exception)
-				{
-					exception.printStackTrace();
-				}
-			});
-		}
-		return insertButton;
 	}
 
 	private JButton getQueryButton()
