@@ -70,9 +70,11 @@ class HBaseClient extends JFrame implements Runnable
 			{   //鼠标完成点击事件
 				if (e.getButton() == MouseEvent.BUTTON3)
 				{ //e.getButton就会返回点鼠标的那个键，左键还是右健，3代表右键
-					int x = e.getX();  //左上角为(0, 0)坐
-		            int y = e.getY();
-					System.out.println("(" + (x-8) + "," + (y-31) + ")");  // 校准
+					Point point = new Point();
+					point.setX(e.getX());
+		            point.setY(e.getY());
+		            point.calibrate2Clickable();
+					System.out.println(point);  // 校准
 				}
 			}
 		});
@@ -87,6 +89,8 @@ class HBaseClient extends JFrame implements Runnable
 		{
 			try
 			{
+//				Thread.sleep(2000);
+//				System.out.println("hehe");
 			}
 			catch (Exception e)
 			{
