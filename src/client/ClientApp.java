@@ -26,9 +26,10 @@ class HBaseClient extends JFrame
 	private static final long serialVersionUID = -2346534561072742542L;
 	private JLabel myLabel;
 	private JTextField editNumPoints;
-	//private TextArea textArea;
-	private JTextField jTextFieldInput;
+	private JTextField queryResults;
+	private JButton queryButton;
 	private JPanel panelNorth;
+	private JPanel panelSouth;
 	private JButton insertButton;
 	Thread thread;
 
@@ -48,7 +49,7 @@ class HBaseClient extends JFrame
 	private void init() throws Exception
 	{
 		caitaoHBase = new HBase();
-		
+
 		myLabel = new JLabel("随机产生");
 		editNumPoints = new JTextField(6);
 		editNumPoints.setEditable(true);
@@ -57,14 +58,18 @@ class HBaseClient extends JFrame
 		panelNorth.add(editNumPoints);
 		panelNorth.add(getInsertButton());
 
-		jTextFieldInput = new JTextField();
-		jTextFieldInput.setEditable(true);
+		queryResults = new JTextField(10);
+		queryResults.setEditable(true);
+		panelSouth = new JPanel();
+		panelSouth.add(queryResults);
+		panelSouth.add(getQueryButton());
 
 		setBounds(400, 100, 500, 500);
 		setTitle("HBase Client -- 詹才韬");
+		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
-		add(jTextFieldInput, BorderLayout.SOUTH);
-		jTextFieldInput.addActionListener((ActionEvent e) ->
+		add(panelSouth, BorderLayout.SOUTH);
+		queryResults.addActionListener((ActionEvent e) ->
 		{
 			jTextFieldInput_actionPerformed(e);
 		});
@@ -78,8 +83,8 @@ class HBaseClient extends JFrame
 					Point point = new Point();
 					point.setX(e.getX());
 					point.setY(e.getY());
-					point.calibrate2Clickable();
-					System.out.println(point);  // 校准
+					point.calibrate2Clickable();  // 校准
+					System.out.println(point);
 				}
 			}
 		});
@@ -106,7 +111,7 @@ class HBaseClient extends JFrame
 		}
 	}
 
-	public JButton getInsertButton()
+	private JButton getInsertButton()
 	{
 		if (insertButton == null) // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
 		{
@@ -119,10 +124,10 @@ class HBaseClient extends JFrame
 					int number = Integer.parseInt(str);
 					for (int i = 0; i < number; ++i)
 					{
-						
+
 					}
 				}
-				catch (NumberFormatException exception) 
+				catch (NumberFormatException exception)
 				{
 					exception.printStackTrace();
 				}
@@ -133,6 +138,26 @@ class HBaseClient extends JFrame
 			});
 		}
 		return insertButton;
+	}
+
+	private JButton getQueryButton()
+	{
+		if (queryButton == null)
+		{
+			queryButton = new JButton("Query");
+			queryButton.addActionListener((ActionEvent e) ->
+			{
+				try
+				{
+
+				}
+				catch (Exception exception)
+				{
+
+				}
+			});
+		}
+		return queryButton;
 	}
 
 }
