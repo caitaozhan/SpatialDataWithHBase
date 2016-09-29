@@ -7,8 +7,8 @@ package client;
  */
 public class Point
 {
-	private int m_x;
-	private int m_y;
+	private double m_x;
+	private double m_y;
 
 	public Point()
 	{
@@ -31,12 +31,12 @@ public class Point
 		m_y = y;
 	}
 
-	public int getX()
+	public double getX()
 	{
 		return m_x;
 	}
 
-	public int getY()
+	public double getY()
 	{
 		return m_y;
 	}
@@ -46,8 +46,8 @@ public class Point
 	 */
 	public void calibrate2Clickable()
 	{
-		m_x -= 8;
-		m_y -= 57;
+		m_x -= 4;
+		m_y -= 52;
 	}
 
 	/*

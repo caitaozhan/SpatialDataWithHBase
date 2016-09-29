@@ -50,6 +50,7 @@ class HBaseClient extends JFrame
 	{
 		caitaoHBase = new HBase();
 
+		setResizable(false);
 		panelNorth = new JPanel();
 		editInsertNumber = new JTextField();
 		editInsertNumber.setEditable(true);
@@ -57,7 +58,6 @@ class HBaseClient extends JFrame
 		panelNorth.add(editInsertNumber);
 		panelNorth.add(getInsertButton());
 	
-		
 		queryResults = new JTextField(10);
 		queryResults.setEditable(true);
 		panelSouth = new JPanel();
@@ -65,7 +65,7 @@ class HBaseClient extends JFrame
 		panelSouth.add(queryResults);
 		panelSouth.add(getQueryButton());
 
-		setBounds(100, 10, 1200, 700);
+		setBounds(100, 10, 524, 599);
 		setTitle("HBase Client -- 詹才韬");
 		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
@@ -96,12 +96,12 @@ class HBaseClient extends JFrame
 	{
 		if (insertButton == null) // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
 		{
-			insertButton = new JButton("Input an integer N, then put N random (x, y) into HBase");
+			insertButton = new JButton("Input N, put N random (x, y) into HBase");
 			insertButton.addActionListener((ActionEvent e) ->
 			{
 				try
 				{
-					
+					// DOTO: put
 				}
 				catch (Exception exception)
 				{
