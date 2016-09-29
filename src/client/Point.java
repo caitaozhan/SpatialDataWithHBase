@@ -21,12 +21,12 @@ public class Point
 		m_y = y;
 	}
 
-	public void setX(int x)
+	public void setX(double x)
 	{
 		m_x = x;
 	}
 
-	public void setY(int y)
+	public void setY(double y)
 	{
 		m_y = y;
 	}
@@ -46,8 +46,8 @@ public class Point
 	 */
 	public void calibrate2Clickable()
 	{
-		m_x -= 4;
-		m_y -= 52;
+		m_x -= 1;
+		m_y -= 49;
 	}
 
 	/*
@@ -66,7 +66,7 @@ public class Point
 
 	public String toString()
 	{
-		return "(" + m_x + "," + m_y + ")";
+		return "(" + m_x + ", " + m_y + ")";
 	}
 
 	public static void main(String[] args)

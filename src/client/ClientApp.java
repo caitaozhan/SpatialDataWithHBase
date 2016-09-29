@@ -23,6 +23,8 @@ class HBaseClient extends JFrame
 {
 	@SuppressWarnings("unused")
 	private HBase caitaoHBase;
+	private QueryRect queryRect;
+	
 	private static final long serialVersionUID = -2346534561072742542L;
 	private JTextField editInsertNumber;
 	private JButton insertButton;
@@ -49,7 +51,8 @@ class HBaseClient extends JFrame
 	private void init() throws Exception
 	{
 		caitaoHBase = new HBase();
-
+		queryRect = new QueryRect();
+		
 		setResizable(false);
 		panelNorth = new JPanel();
 		editInsertNumber = new JTextField();
@@ -65,7 +68,7 @@ class HBaseClient extends JFrame
 		panelSouth.add(queryResults);
 		panelSouth.add(getQueryButton());
 
-		setBounds(100, 10, 524, 599);
+		setBounds(100, 10, 514, 587);
 		setTitle("HBase Client -- 詹才韬");
 		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
@@ -85,7 +88,8 @@ class HBaseClient extends JFrame
 					point.setX(e.getX());
 					point.setY(e.getY());
 					point.calibrate2Clickable();  // 校准
-					System.out.println(point);
+					queryRect.update(point);
+					System.out.println(queryRect);
 				}
 			}
 		});
