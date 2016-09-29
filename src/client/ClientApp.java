@@ -2,6 +2,8 @@ package client;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
+
 import javax.swing.*;
 import hbase.*;
 
@@ -26,6 +28,8 @@ class HBaseClient extends JFrame
 	private QueryRect queryRect;
 	
 	private static final long serialVersionUID = -2346534561072742542L;
+	private final int MAX_X = 512;
+	private final int MAX_Y = 512;
 	private JTextField editInsertNumber;
 	private JButton insertButton;
 
@@ -93,7 +97,6 @@ class HBaseClient extends JFrame
 				}
 			}
 		});
-
 	}
 
 	private JButton getInsertButton()
@@ -105,7 +108,23 @@ class HBaseClient extends JFrame
 			{
 				try
 				{
+					String string = editInsertNumber.getText();
+					int insertNum = Integer.valueOf(string);
+					Vector<Point> insertPoints = new Vector<Point>();
+					for(int i = 0; i < insertNum; i++)
+					{
+						Point tempPoint = new Point();
+						tempPoint.random(MAX_X, MAX_Y);
+						insertPoints.add(tempPoint);
+					}
+					
 					// DOTO: put
+					
+				}
+				catch (NumberFormatException exception)
+				{
+					System.out.println("didn't input an integer");
+					exception.printStackTrace();
 				}
 				catch (Exception exception)
 				{

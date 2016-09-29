@@ -59,9 +59,10 @@ public class Point
 		m_y += 31;
 	}
 	
-	public void hilbertCurve()
+	public void random(int maxX, int maxY)
 	{
-
+		m_x = Math.random() * maxX;
+		m_y = Math.random() * maxY;
 	}
 
 	public String toString()
