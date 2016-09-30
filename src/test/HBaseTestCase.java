@@ -100,15 +100,27 @@ public class HBaseTestCase
 	
 	public static void main(String [] args)
 	{
-		String tablename = "hbase_tb2";
-		String columnFamily = "cf";
+		//String tablename = "hbase_tb2";
+		//String columnFamily = "cf";
 		try
 		{
-			HBaseTestCase.create(tablename, columnFamily);
-			HBaseTestCase.put(tablename, "row1", columnFamily, "cl1", "data");
-			HBaseTestCase.put(tablename, "row1", columnFamily, "cl2", "caitao");
-			HBaseTestCase.get(tablename, "row1");
-			HBaseTestCase.scan(tablename);
+//			HBaseTestCase.create(tablename, columnFamily);
+//			HBaseTestCase.put(tablename, "row1", columnFamily, "cl1", "data");
+//			HBaseTestCase.put(tablename, "row1", columnFamily, "cl2", "caitao");
+//			HBaseTestCase.get(tablename, "row1");
+//			HBaseTestCase.scan(tablename);
+			
+			byte[] bytes1 = Bytes.toBytes(6.66666);
+			System.out.println(bytes1);
+			System.out.println(new String(bytes1) + "\n");
+			
+			byte[] bytes2 = Bytes.toBytes("6.66666");
+			System.out.println(bytes2);
+			System.out.println(new String(bytes2) + "\n");
+			
+			byte[] bytes3 = new String("6.66666").getBytes();
+			System.out.println(bytes3);
+			System.out.println(new String(bytes3) + "\n");
 		}
 		catch(Exception e)
 		{

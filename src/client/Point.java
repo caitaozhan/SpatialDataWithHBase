@@ -1,5 +1,7 @@
 package client;
 
+import java.util.Vector;
+
 /**
  * encapsulate a two dimensional spatial point
  * @author Caitao Zhan (caitaozhan@163.com)
@@ -7,18 +9,27 @@ package client;
  */
 public class Point
 {
+	private static int totalPoints;
+	static
+	{
+		totalPoints = 0;
+	}
+	
 	private double m_x;
 	private double m_y;
+	private int m_id;
 
 	public Point()
 	{
 		m_x = m_y = 0;
+		m_id = totalPoints++;
 	}
 
 	public Point(int x, int y)
 	{
 		m_x = x;
 		m_y = y;
+		m_id = totalPoints++;
 	}
 
 	public void setX(double x)
@@ -39,6 +50,11 @@ public class Point
 	public double getY()
 	{
 		return m_y;
+	}
+	
+	public int getID()
+	{
+		return m_id;
 	}
 	
 	/*
@@ -73,5 +89,12 @@ public class Point
 	public static void main(String[] args)
 	{
 
+		Vector<Point> points = new Vector<Point>();
+		for(int i = 0; i < 100; ++i)
+		{
+			Point point = new Point();
+			point.random(512, 512);
+			points.add(point);
+		}
 	}
 }

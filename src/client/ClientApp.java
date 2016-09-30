@@ -159,7 +159,7 @@ class HBaseClient extends JFrame
 	{
 		if (queryButton == null)
 		{
-			queryButton = new JButton("Query");
+			queryButton = new JButton("Range Query");
 			queryButton.addActionListener((ActionEvent e) ->
 			{
 				try
