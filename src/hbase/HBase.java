@@ -37,23 +37,24 @@ public class HBase
 	public static String generatePointRowKey(Point point)
 	{
 		int hilbertLength = 6, idLength = 10;
+		int order = 9;  // x, y : (0, 2^9-1)
 		StringBuffer rowKey = new StringBuffer();
 		int x = (int) point.getX();
 		int y = (int) point.getY();
 		int id = point.getID();
 		
-		long encode = HilbertCurve.encode(x, y, 8);
+		long encode = HilbertCurve.encode(x, y, order);
 		String encodeStr = String.valueOf(encode);
 		String idString = String.valueOf(id);
 		
 		byte[] temp = new byte[hilbertLength - encodeStr.length()];
 		Arrays.fill(temp, (byte) '0');
-		rowKey.append(temp);
+		rowKey.append(new String(temp));
 		rowKey.append(encodeStr);
 		
 		temp = new byte[idLength - idString.length()];
 		Arrays.fill(temp, (byte) '0');
-		rowKey.append(temp);
+		rowKey.append(new String(temp));
 		rowKey.append(idString);
 		
 		return rowKey.toString();
@@ -151,8 +152,13 @@ public class HBase
 		String columnFamily = "Point";
 		try
 		{
-			Point point = new Point();
-			point.random(512, 512);
+//			for(int i = 0; i < 100; ++i)
+//			{
+//				Point point = new Point();
+//				point.random(512, 512);
+//				String rowKey = generatePointRowKey(point);
+//				System.out.println(rowKey);
+//			}
 			
 			HBase.create(tablename, columnFamily);
 			HBase.put(tablename, "row1", columnFamily, "x", "hello motto");
