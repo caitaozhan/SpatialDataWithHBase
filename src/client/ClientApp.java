@@ -23,11 +23,32 @@ public class ClientApp
  */
 class HBaseClient extends JFrame
 {
-	@SuppressWarnings("unused")
-	private HBase caitaoHBase;
-	private QueryRect queryRect;
-	
 	private static final long serialVersionUID = -2346534561072742542L;
+
+	private HBase caitaoHBase;
+	static private String TABLE_NAME;
+	static private String COLUMN_FAMILY;
+	static private String QUALIFY_X;
+	static private String QUALIFY_Y;
+	static private String QUALIFY_ID;
+	static
+	{// this is the schema of storing spatial points in HBase
+		TABLE_NAME = new String("Spatial");
+		COLUMN_FAMILY = new String("Point");
+		QUALIFY_X = new String("X");
+		QUALIFY_Y = new String("Y");
+		QUALIFY_ID = new String("ID");
+		try 
+		{// create a HBase schema
+			HBase.create(TABLE_NAME, COLUMN_FAMILY);
+		}
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	private QueryRect queryRect;
 	private final int MAX_X = 512;
 	private final int MAX_Y = 512;
 	private JTextField editInsertNumber;
@@ -110,16 +131,9 @@ class HBaseClient extends JFrame
 				{
 					String string = editInsertNumber.getText();
 					int insertNum = Integer.valueOf(string);
-					Vector<Point> insertPoints = new Vector<Point>();
-					for(int i = 0; i < insertNum; i++)
-					{
-						Point tempPoint = new Point();
-						tempPoint.random(MAX_X, MAX_Y);
-						insertPoints.add(tempPoint);
-					}
 					
-					// DOTO: put
-					
+					caitaoHBase.insertRandomPoints(insertNum, MAX_X, MAX_Y,
+							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y, QUALIFY_ID);
 				}
 				catch (NumberFormatException exception)
 				{
