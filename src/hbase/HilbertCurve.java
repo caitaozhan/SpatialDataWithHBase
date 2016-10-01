@@ -40,7 +40,7 @@ public class HilbertCurve
 	 * 
 	 * @return a string, which is encoded from (x, y) using Hilbert curve
 	 */
-	public static long hilbertCurveEncode(int x, int y, int order)
+	public static long encode(int x, int y, int order)
 	{
 		String currentSquare = "a";
 		long position = 0;  // max = 2^63-1
@@ -65,7 +65,7 @@ public class HilbertCurve
 	
 	public static void main(String[] args)
 	{
-		System.out.println(hilbertCurveEncode(5, 2, 3));
+		System.out.println(encode(5, 2, 3));
 	}
 
 }

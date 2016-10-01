@@ -22,14 +22,14 @@ public class Point
 	public Point()
 	{
 		m_x = m_y = 0;
-		m_id = totalPoints++;
+		m_id = ++totalPoints;
 	}
 
 	public Point(int x, int y)
 	{
 		m_x = x;
 		m_y = y;
-		m_id = totalPoints++;
+		m_id = ++totalPoints;
 	}
 
 	public void setX(double x)
@@ -47,14 +47,29 @@ public class Point
 		return m_x;
 	}
 
+	public String getStringX()
+	{
+		return String.valueOf(m_x);
+	}
+	
 	public double getY()
 	{
 		return m_y;
 	}
 	
+	public String getStringY()
+	{
+		return String.valueOf(m_y);
+	}
+	
 	public int getID()
 	{
 		return m_id;
+	}
+	
+	public String getStringID()
+	{
+		return String.valueOf(m_id);
 	}
 	
 	/*
