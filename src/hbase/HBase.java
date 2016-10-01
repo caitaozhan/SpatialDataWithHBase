@@ -109,6 +109,7 @@ public class HBase
 		{
 			System.err.println("Error: " + e);
 		}
+		table.close();
 		connection.close();
 	}
 

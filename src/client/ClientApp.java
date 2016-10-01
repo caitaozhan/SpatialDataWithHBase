@@ -2,10 +2,9 @@ package client;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Vector;
-
 import javax.swing.*;
 import hbase.*;
+import java.util.regex.*;
 
 public class ClientApp
 {
@@ -40,7 +39,7 @@ class HBaseClient extends JFrame
 		QUALIFY_ID = new String("ID");
 		try 
 		{// create a HBase schema
-			HBase.create(TABLE_NAME, COLUMN_FAMILY);
+			//HBase.create(TABLE_NAME, COLUMN_FAMILY);
 		}
 		catch (Exception e) 
 		{
@@ -54,7 +53,7 @@ class HBaseClient extends JFrame
 	private JTextField editInsertNumber;
 	private JButton insertButton;
 
-	private JTextField queryResults;
+	private JTextField queryInteract;
 	private JButton queryButton;
 	private JPanel panelNorth;
 	private JPanel panelSouth;
@@ -86,11 +85,11 @@ class HBaseClient extends JFrame
 		panelNorth.add(editInsertNumber);
 		panelNorth.add(getInsertButton());
 	
-		queryResults = new JTextField(10);
-		queryResults.setEditable(true);
+		queryInteract = new JTextField(10);
+		queryInteract.setEditable(true);
 		panelSouth = new JPanel();
 		panelSouth.setLayout(new GridLayout(1, 2));
-		panelSouth.add(queryResults);
+		panelSouth.add(queryInteract);
 		panelSouth.add(getQueryButton());
 
 		setBounds(100, 10, 514, 587);
@@ -98,7 +97,7 @@ class HBaseClient extends JFrame
 		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
 		add(panelSouth, BorderLayout.SOUTH);
-		queryResults.addActionListener((ActionEvent e) ->
+		queryInteract.addActionListener((ActionEvent e) ->
 		{
 			jTextFieldInput_actionPerformed(e);
 		});
@@ -114,7 +113,8 @@ class HBaseClient extends JFrame
 					point.setY(e.getY());
 					point.calibrate2Clickable();  // 校准
 					queryRect.update(point);
-					System.out.println(queryRect);
+					//System.out.println(queryRect);
+					queryInteract.setText(queryRect.toString());
 				}
 			}
 		});
@@ -134,10 +134,12 @@ class HBaseClient extends JFrame
 					
 					caitaoHBase.insertRandomPoints(insertNum, MAX_X, MAX_Y,
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y, QUALIFY_ID);
+					
+					System.out.println("Successfully inserted " + insertNum + "random points into HBase!");
 				}
 				catch (NumberFormatException exception)
 				{
-					System.out.println("didn't input an integer");
+					System.err.println("didn't input an integer");
 					exception.printStackTrace();
 				}
 				catch (Exception exception)
@@ -173,16 +175,36 @@ class HBaseClient extends JFrame
 	{
 		if (queryButton == null)
 		{
-			queryButton = new JButton("Range Query");
+			queryButton = new JButton("Query");
 			queryButton.addActionListener((ActionEvent e) ->
 			{
 				try
-				{
-
+				{//Range: (10.0, 20.0)--(50.0, 60.0)
+					String queryText = queryInteract.getText();
+					double RectMinX, RectMinY, RectMaxX, RectMaxY;
+					String d = "([^\\d])(\\d+\\.\\d+)"; // can represent every double, but is enough in this case
+					String regex = ".*"+d+".*"+d+".*"+d+".*"+d+".*";
+					Pattern pattern = Pattern.compile(regex);
+					Matcher matcher = pattern.matcher(queryText);
+					if(matcher.find())
+					{
+						RectMinX = Integer.valueOf(matcher.group(2));
+						RectMinY = Integer.valueOf(matcher.group(4));
+						RectMaxX = Integer.valueOf(matcher.group(6));
+						RectMaxY = Integer.valueOf(matcher.group(8));
+					}
+					else
+					{
+						throw new Exception("No match");
+					}
+					
+					// TODO: query, row scan + column filter
+					
 				}
 				catch (Exception exception)
 				{
-
+					System.err.println(exception);
+					exception.printStackTrace();
 				}
 			});
 		}

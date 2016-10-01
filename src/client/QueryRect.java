@@ -46,7 +46,7 @@ public class QueryRect
 	
 	public String toString()
 	{
-		return point1.toString() + " -- " + point2.toString();
+		return "Range: " + point1.toString() + "--" + point2.toString();
 	}
 	
 	public static void main(String[] args) 
