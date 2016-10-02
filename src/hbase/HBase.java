@@ -21,6 +21,10 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Row;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import client.Point;
@@ -30,6 +34,8 @@ public class HBase
 {
 	//static HBase Configuration, /conf/hbase-site.xml
 	static Configuration cfg = HBaseConfiguration.create();
+	static private int hilbertLength = 6;
+	static private int idLength = 10;
 	
 	/**
 	 * generate a Point's row key. row key = hilbert + id
@@ -39,7 +45,6 @@ public class HBase
 	 */
 	public static String generatePointRowKey(Point point)
 	{
-		int hilbertLength = 6, idLength = 10;
 		int order = 9;  // x, y : (0, 2^9-1)
 		StringBuffer rowKey = new StringBuffer();
 		int x = (int) point.getX();
@@ -141,11 +146,81 @@ public class HBase
 		}
 	}
 	
-	//show all data, through HTable Scan
-	public static void scan(String tablename) throws IOException
+	public ArrayList<Point> rangeQuery(String tableName, String columnFamily, String qualifyX, String qualifyY,
+			long[] hilbert, ArrayList<Integer> ranges, double rectMinX, double rectMinY, double rectMaxX, double rectMaxY) throws IOException
 	{
 		Connection connection = ConnectionFactory.createConnection(cfg);
-		Table table = connection.getTable(TableName.valueOf(tablename));
+		Table table = connection.getTable(TableName.valueOf(tableName));
+		ArrayList<Point> queriedPoints = new ArrayList<Point>();
+		for(int i = 0, j = 1; j < ranges.size(); i+=2, j+=2)
+		{
+			String startStr = String.valueOf((hilbert[ranges.get(i).intValue()]));
+			String endStr   = String.valueOf((hilbert[ranges.get(j).intValue()]));
+			
+			StringBuffer startBuffer = new StringBuffer();
+			byte[] temp = new byte[hilbertLength - startStr.length()];
+			Arrays.fill(temp, (byte)'0');
+			startBuffer.append(new String(temp));
+			startBuffer.append(startStr);
+			
+			StringBuffer endBuffer   = new StringBuffer();
+			temp = new byte[hilbertLength - endStr.length()];
+			Arrays.fill(temp, (byte)'0');
+			endBuffer.append(new String(temp));
+			endBuffer.append(endStr);
+			
+			// 过滤：限定 (x, y)的取值范围
+			List<Filter> filters = new ArrayList<Filter>();
+			SingleColumnValueFilter filter = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+					CompareFilter.CompareOp.GREATER_OR_EQUAL, 
+					Bytes.toBytes(String.valueOf(rectMinX)));
+			filters.add(filter);
+			
+			filter = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+					CompareFilter.CompareOp.LESS_OR_EQUAL,
+					Bytes.toBytes(String.valueOf(rectMaxX)));
+			filters.add(filter);
+
+			filter = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+					CompareFilter.CompareOp.GREATER_OR_EQUAL,
+					Bytes.toBytes(String.valueOf(rectMinY)));
+			filters.add(filter);
+			
+			filter = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+					CompareFilter.CompareOp.LESS_OR_EQUAL,
+					Bytes.toBytes(String.valueOf(rectMaxY)));
+			filters.add(filter);
+			FilterList filterList = new FilterList(filters);
+			
+			Scan scan = new Scan();
+			scan.setStartRow(Bytes.toBytes(startBuffer.toString()));
+			scan.setStopRow(Bytes.toBytes(endBuffer.toString()));
+			scan.setFilter(filterList);
+			
+			ResultScanner scanner = table.getScanner(scan);
+			for(Result result : scanner)
+			{
+				for(Cell cell : result.rawCells())
+				{
+					System.out.println("Cell: " + cell + ", Value: " + 
+							Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
+				}
+			}
+		}
+		
+		return queriedPoints;
+	}
+
+	
+	//show all data, through HTable Scan
+	public static void scan(String tableName) throws IOException
+	{
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Table table = connection.getTable(TableName.valueOf(tableName));
 		Scan s = new Scan();
 		ResultScanner rs = table.getScanner(s);
 		for(Result result : rs)
@@ -205,7 +280,6 @@ public class HBase
 			e.printStackTrace();
 		}
 	}
-
 }
 
 

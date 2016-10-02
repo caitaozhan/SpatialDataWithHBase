@@ -8,13 +8,7 @@ import java.util.Vector;
  * @see <a href="https://github.com/caitaozhan/SpatialDataWithHBase">Github</a>
  */
 public class Point
-{
-	private static int totalPoints;
-	static
-	{
-		totalPoints = 0;
-	}
-	
+{	
 	private double m_x;
 	private double m_y;
 	private int m_id;
@@ -22,14 +16,20 @@ public class Point
 	public Point()
 	{
 		m_x = m_y = 0;
-		m_id = ++totalPoints;
+		m_id = 0;
+	}
+	
+	public Point(int id)
+	{
+		m_x = m_y = 0;
+		m_id = id;
 	}
 
 	public Point(int x, int y)
 	{
 		m_x = x;
 		m_y = y;
-		m_id = ++totalPoints;
+		m_id = 0;
 	}
 
 	public void setX(double x)
