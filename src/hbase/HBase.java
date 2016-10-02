@@ -36,6 +36,7 @@ public class HBase
 	static Configuration cfg = HBaseConfiguration.create();
 	static private int hilbertLength = 6;
 	static private int idLength = 10;
+	static private int TOTAL_POINTS = 0;
 	
 	/**
 	 * generate a Point's row key. row key = hilbert + id
@@ -96,7 +97,7 @@ public class HBase
 		List<Row> batch = new ArrayList<Row>();  // a batch of puts is faster than many seperate puts
 		for(int i = 0; i < insertNum; i++)
 		{
-			Point point = new Point();
+			Point point = new Point(++TOTAL_POINTS);
 			point.random(maxX, maxY);
 			String rowKey = generatePointRowKey(point);	
 			Put put = new Put(Bytes.toBytes(rowKey));
@@ -155,7 +156,7 @@ public class HBase
 		for(int i = 0, j = 1; j < ranges.size(); i+=2, j+=2)
 		{
 			String startStr = String.valueOf((hilbert[ranges.get(i).intValue()]));
-			String endStr   = String.valueOf((hilbert[ranges.get(j).intValue()]));
+			String endStr   = String.valueOf((hilbert[ranges.get(j).intValue()]) + 1);  // [startRow, endRow]
 			
 			StringBuffer startBuffer = new StringBuffer();
 			byte[] temp = new byte[hilbertLength - startStr.length()];
@@ -169,37 +170,38 @@ public class HBase
 			endBuffer.append(new String(temp));
 			endBuffer.append(endStr);
 			
+			System.out.println("\n" + startBuffer.toString() + " --> " + endBuffer.toString());
 			// 过滤：限定 (x, y)的取值范围
-			List<Filter> filters = new ArrayList<Filter>();
-			SingleColumnValueFilter filter = new SingleColumnValueFilter(
-					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
-					CompareFilter.CompareOp.GREATER_OR_EQUAL, 
-					Bytes.toBytes(String.valueOf(rectMinX)));
-			filters.add(filter);
-			
-			filter = new SingleColumnValueFilter(
-					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
-					CompareFilter.CompareOp.LESS_OR_EQUAL,
-					Bytes.toBytes(String.valueOf(rectMaxX)));
-			filters.add(filter);
-
-			filter = new SingleColumnValueFilter(
-					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
-					CompareFilter.CompareOp.GREATER_OR_EQUAL,
-					Bytes.toBytes(String.valueOf(rectMinY)));
-			filters.add(filter);
-			
-			filter = new SingleColumnValueFilter(
-					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
-					CompareFilter.CompareOp.LESS_OR_EQUAL,
-					Bytes.toBytes(String.valueOf(rectMaxY)));
-			filters.add(filter);
-			FilterList filterList = new FilterList(filters);
+//			List<Filter> filters = new ArrayList<Filter>();
+//			SingleColumnValueFilter filter = new SingleColumnValueFilter(
+//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+//					CompareFilter.CompareOp.GREATER_OR_EQUAL, 
+//					Bytes.toBytes(String.valueOf(rectMinX)));
+//			filters.add(filter);
+//			
+//			filter = new SingleColumnValueFilter(
+//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+//					CompareFilter.CompareOp.LESS_OR_EQUAL,
+//					Bytes.toBytes(String.valueOf(rectMaxX)));
+//			filters.add(filter);
+//
+//			filter = new SingleColumnValueFilter(
+//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+//					CompareFilter.CompareOp.GREATER_OR_EQUAL,
+//					Bytes.toBytes(String.valueOf(rectMinY)));
+//			filters.add(filter);
+//			
+//			filter = new SingleColumnValueFilter(
+//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+//					CompareFilter.CompareOp.LESS_OR_EQUAL,
+//					Bytes.toBytes(String.valueOf(rectMaxY)));
+//			filters.add(filter);
+//			FilterList filterList = new FilterList(filters);
 			
 			Scan scan = new Scan();
 			scan.setStartRow(Bytes.toBytes(startBuffer.toString()));
 			scan.setStopRow(Bytes.toBytes(endBuffer.toString()));
-			scan.setFilter(filterList);
+//			scan.setFilter(filterList);
 			
 			ResultScanner scanner = table.getScanner(scan);
 			for(Result result : scanner)
@@ -210,6 +212,7 @@ public class HBase
 							Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
 				}
 			}
+			System.out.println();
 		}
 		
 		return queriedPoints;
@@ -257,29 +260,26 @@ public class HBase
 	
 	public static void main(String [] args)
 	{
-		String tablename = "SpatialTest";
-		String columnFamily = "Point";
-		try
-		{
-			for(int i = 0; i < 10; ++i)
-			{
-				Point point = new Point();
-				point.random(512, 512);
-				String rowKey = generatePointRowKey(point);
-			
-				//create(tablename, columnFamily);
-				put(tablename, rowKey, columnFamily, "id", point.getStringID());
-				put(tablename, rowKey, columnFamily, "x", point.getStringX());
-				put(tablename, rowKey, columnFamily, "y", point.getStringY());
-			}
-			scan(tablename);
-			
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+//		String tablename = "SpatialTest";
+//		String columnFamily = "Point";
+//		try
+//		{
+//			for(int i = 0; i < 10; ++i)
+//			{
+//				Point point = new Point();
+//				point.random(512, 512);
+//				String rowKey = generatePointRowKey(point);
+//			
+//				//create(tablename, columnFamily);
+//				put(tablename, rowKey, columnFamily, "id", point.getStringID());
+//				put(tablename, rowKey, columnFamily, "x", point.getStringX());
+//				put(tablename, rowKey, columnFamily, "y", point.getStringY());
+//			}
+//			scan(tablename);
+//		}
+//		catch(Exception e)
+//		{
+//			e.printStackTrace();
+//		}
 	}
 }
-
-

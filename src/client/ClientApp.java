@@ -33,7 +33,7 @@ class HBaseClient extends JFrame
 	static private String QUALIFY_X;
 	static private String QUALIFY_Y;
 	static private String QUALIFY_ID;
-	static private int    TOTAL_POINTS;
+	static private int INTERACT_POINT_ID = 0;  // not a beautiful design, just to give Points in queryInteract an ID
 	static
 	{// this is the schema of storing spatial points in HBase
 		TABLE_NAME = new String("Spatial");
@@ -41,10 +41,9 @@ class HBaseClient extends JFrame
 		QUALIFY_X = new String("X");
 		QUALIFY_Y = new String("Y");
 		QUALIFY_ID = new String("ID");
-		TOTAL_POINTS = 0;
 		try 
-		{// create a HBase schema
-			//HBase.create(TABLE_NAME, COLUMN_FAMILY);
+		{// create a HBase table
+			HBase.create(TABLE_NAME, COLUMN_FAMILY);
 		}
 		catch (Exception e) 
 		{
@@ -63,7 +62,7 @@ class HBaseClient extends JFrame
 	private JButton queryButton;
 	private JPanel panelNorth;
 	private JPanel panelSouth;
-	Thread thread;
+//	Thread thread;
 
 	public HBaseClient()
 	{
@@ -114,7 +113,7 @@ class HBaseClient extends JFrame
 			{   //鼠标完成点击事件
 				if (e.getButton() == MouseEvent.BUTTON3)
 				{ //e.getButton就会返回点鼠标的那个键，左键还是右健，3代表右键
-					Point point = new Point(++TOTAL_POINTS);
+					Point point = new Point(++INTERACT_POINT_ID);
 					point.setX(e.getX());
 					point.setY(e.getY());
 					point.calibrate2Clickable();  // 校准
@@ -140,7 +139,7 @@ class HBaseClient extends JFrame
 					caitaoHBase.insertRandomPoints(insertNum, MAX_X, MAX_Y,
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y, QUALIFY_ID);
 					
-					System.out.println("Successfully inserted " + insertNum + "random points into HBase!");
+					System.out.println("Successfully inserted " + insertNum + " random points into HBase!");
 				}
 				catch (NumberFormatException exception)
 				{
@@ -203,20 +202,19 @@ class HBaseClient extends JFrame
 						throw new Exception("No match");
 					}
 					
-					// TODO: query, row scan + column filter
 					long[] hilbert = null;
 					hilbert = getAllHilbertDistance((int)RectMinX, (int)RectMinY, (int)RectMaxX, (int)RectMaxY);
 					ArrayList<Integer> ranges = splitRange(hilbert);
 					ArrayList<Point> queryResult = caitaoHBase.rangeQuery(
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y,
 							hilbert, ranges, RectMinX, RectMinY, RectMaxX, RectMaxY);
-					String text = queryInteract.getText();
-					queryInteract.setText(text + " --> " + String.valueOf(queryResult.size()) + "points");
-					System.out.println(queryResult);
+//					String text = queryInteract.getText();
+//					queryInteract.setText(text + " --> " + String.valueOf(queryResult.size()) + "points");
+//					System.out.println(queryResult);
 				}
 				catch (Exception exception)
 				{
-					System.err.println(exception);
+					System.out.println(exception);
 					exception.printStackTrace();
 				}
 			});
@@ -224,6 +222,7 @@ class HBaseClient extends JFrame
 		return queryButton;
 	}
 	
+	// the split ranges are inclusive on both sides, i.e., [.. , ..]
 	private ArrayList<Integer> splitRange(long[] hilbert)
 	{
 		for(int i = 0; i < hilbert.length; ++i)
@@ -240,9 +239,9 @@ class HBaseClient extends JFrame
 					continue;
 				}
 				else
-				{
+				{// inclusive: [lower , higher]
 					ranges.add(Integer.valueOf(i));
-					ranges.add(Integer.valueOf(j + 1));
+					ranges.add(Integer.valueOf(j));
 					i = j + 1;
 				}
 			}
