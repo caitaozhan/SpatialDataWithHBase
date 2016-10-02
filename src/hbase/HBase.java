@@ -21,10 +21,12 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Row;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.BinaryComparator;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
+import org.apache.hadoop.hbase.filter.FilterList.Operator;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import client.Point;
@@ -101,9 +103,9 @@ public class HBase
 			point.random(maxX, maxY);
 			String rowKey = generatePointRowKey(point);	
 			Put put = new Put(Bytes.toBytes(rowKey));
-			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyID), Bytes.toBytes(point.getStringID()));
-			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX), Bytes.toBytes(point.getStringX()));
-			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY), Bytes.toBytes(point.getStringY()));
+			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyID), Bytes.toBytes(point.getID()));
+			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX), Bytes.toBytes(point.getX()));
+			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY), Bytes.toBytes(point.getY()));
 			batch.add(put);
 		}
 		Object[] results = new Object[batch.size()];
@@ -153,6 +155,7 @@ public class HBase
 		Connection connection = ConnectionFactory.createConnection(cfg);
 		Table table = connection.getTable(TableName.valueOf(tableName));
 		ArrayList<Point> queriedPoints = new ArrayList<Point>();
+		int counter = 0;
 		for(int i = 0, j = 1; j < ranges.size(); i+=2, j+=2)
 		{
 			String startStr = String.valueOf((hilbert[ranges.get(i).intValue()]));
@@ -170,51 +173,51 @@ public class HBase
 			endBuffer.append(new String(temp));
 			endBuffer.append(endStr);
 			
-			System.out.println("\n" + startBuffer.toString() + " --> " + endBuffer.toString());
+			//System.out.println("\n" + startBuffer.toString() + " --> " + endBuffer.toString());
 			// 过滤：限定 (x, y)的取值范围
-//			List<Filter> filters = new ArrayList<Filter>();
-//			SingleColumnValueFilter filter = new SingleColumnValueFilter(
-//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
-//					CompareFilter.CompareOp.GREATER_OR_EQUAL, 
-//					Bytes.toBytes(String.valueOf(rectMinX)));
-//			filters.add(filter);
-//			
-//			filter = new SingleColumnValueFilter(
-//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
-//					CompareFilter.CompareOp.LESS_OR_EQUAL,
-//					Bytes.toBytes(String.valueOf(rectMaxX)));
-//			filters.add(filter);
-//
-//			filter = new SingleColumnValueFilter(
-//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
-//					CompareFilter.CompareOp.GREATER_OR_EQUAL,
-//					Bytes.toBytes(String.valueOf(rectMinY)));
-//			filters.add(filter);
-//			
-//			filter = new SingleColumnValueFilter(
-//					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
-//					CompareFilter.CompareOp.LESS_OR_EQUAL,
-//					Bytes.toBytes(String.valueOf(rectMaxY)));
-//			filters.add(filter);
-//			FilterList filterList = new FilterList(filters);
+			FilterList filterList = new FilterList(Operator.MUST_PASS_ALL);
+			SingleColumnValueFilter filterMinX = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+					CompareFilter.CompareOp.GREATER_OR_EQUAL, 
+					new BinaryComparator(Bytes.toBytes(rectMinX)));
+			filterList.addFilter(filterMinX);
+			
+			SingleColumnValueFilter filterMaxX = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+					CompareFilter.CompareOp.LESS,
+					new BinaryComparator(Bytes.toBytes(rectMaxX)));
+			filterList.addFilter(filterMaxX);
+
+			SingleColumnValueFilter filterMinY = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+					CompareFilter.CompareOp.GREATER_OR_EQUAL,
+					new BinaryComparator(Bytes.toBytes(rectMinY)));
+			filterList.addFilter(filterMinY);
+			
+			SingleColumnValueFilter filterMaxY = new SingleColumnValueFilter(
+					Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+					CompareFilter.CompareOp.LESS,
+					new BinaryComparator(Bytes.toBytes(rectMaxY)));
+			filterList.addFilter(filterMaxY);
 			
 			Scan scan = new Scan();
 			scan.setStartRow(Bytes.toBytes(startBuffer.toString()));
 			scan.setStopRow(Bytes.toBytes(endBuffer.toString()));
-//			scan.setFilter(filterList);
+			scan.setFilter(filterList);
 			
 			ResultScanner scanner = table.getScanner(scan);
 			for(Result result : scanner)
 			{
-				for(Cell cell : result.rawCells())
-				{
-					System.out.println("Cell: " + cell + ", Value: " + 
-							Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
-				}
+				++counter;
+//				for(Cell cell : result.rawCells())
+//				{
+//					//System.out.println("Cell: " + cell + ", Value: " + 
+//						//	Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
+//				}
 			}
-			System.out.println();
 		}
-		
+		double ratio = (rectMaxX - rectMinX) * (rectMaxY - rectMinY) / (512*512);
+		System.out.println("theoretical points = " + (int)(TOTAL_POINTS * ratio) + "\nreality points = " + counter);
 		return queriedPoints;
 	}
 
@@ -258,28 +261,27 @@ public class HBase
 		return true;
 	}
 	
+	public static void printBytes(byte[] b)
+	{
+		for(int i = 0; i < b.length; ++i)
+		{
+			System.out.print(b[i] + " ");
+		}
+		System.out.println();
+	}
+	
 	public static void main(String [] args)
 	{
-//		String tablename = "SpatialTest";
-//		String columnFamily = "Point";
-//		try
-//		{
-//			for(int i = 0; i < 10; ++i)
-//			{
-//				Point point = new Point();
-//				point.random(512, 512);
-//				String rowKey = generatePointRowKey(point);
-//			
-//				//create(tablename, columnFamily);
-//				put(tablename, rowKey, columnFamily, "id", point.getStringID());
-//				put(tablename, rowKey, columnFamily, "x", point.getStringX());
-//				put(tablename, rowKey, columnFamily, "y", point.getStringY());
-//			}
-//			scan(tablename);
-//		}
-//		catch(Exception e)
-//		{
-//			e.printStackTrace();
-//		}
+		byte[] b1 = Bytes.toBytes(30.1110);
+		printBytes(b1);
+		
+		byte[] b2 = Bytes.toBytes(3.20);
+		printBytes(b2);
+		
+		byte[] b3 = Bytes.toBytes(String.valueOf(3000));
+		printBytes(b3);
+		
+		byte[] b4 = Bytes.toBytes(String.valueOf(300.1));
+		printBytes(b4);
 	}
 }

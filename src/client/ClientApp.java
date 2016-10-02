@@ -225,10 +225,10 @@ class HBaseClient extends JFrame
 	// the split ranges are inclusive on both sides, i.e., [.. , ..]
 	private ArrayList<Integer> splitRange(long[] hilbert)
 	{
-		for(int i = 0; i < hilbert.length; ++i)
-		{
-			System.out.print(hilbert[i] + " ");
-		}
+//		for(int i = 0; i < hilbert.length; ++i)
+//		{
+//			System.out.print(hilbert[i] + " ");
+//		}
 		ArrayList<Integer> ranges = new ArrayList<Integer>();
 		try
 		{
