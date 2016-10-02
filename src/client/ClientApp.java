@@ -208,9 +208,8 @@ class HBaseClient extends JFrame
 					ArrayList<Point> queryResult = caitaoHBase.rangeQuery(
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y,
 							hilbert, ranges, RectMinX, RectMinY, RectMaxX, RectMaxY);
-//					String text = queryInteract.getText();
-//					queryInteract.setText(text + " --> " + String.valueOf(queryResult.size()) + "points");
-//					System.out.println(queryResult);
+					
+					System.out.println(queryResult);
 				}
 				catch (Exception exception)
 				{
@@ -225,10 +224,6 @@ class HBaseClient extends JFrame
 	// the split ranges are inclusive on both sides, i.e., [.. , ..]
 	private ArrayList<Integer> splitRange(long[] hilbert)
 	{
-//		for(int i = 0; i < hilbert.length; ++i)
-//		{
-//			System.out.print(hilbert[i] + " ");
-//		}
 		ArrayList<Integer> ranges = new ArrayList<Integer>();
 		try
 		{
