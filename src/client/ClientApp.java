@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import hbase.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.*;
 
 public class ClientApp
@@ -50,6 +53,7 @@ class HBaseClient extends JFrame
 	private QueryRect queryRect;
 	private final int MAX_X = 512;
 	private final int MAX_Y = 512;
+	private final int ORDER = 9;
 	private JTextField editInsertNumber;
 	private JButton insertButton;
 
@@ -92,7 +96,7 @@ class HBaseClient extends JFrame
 		panelSouth.add(queryInteract);
 		panelSouth.add(getQueryButton());
 
-		setBounds(100, 10, 514, 587);
+		setBounds(100, 10, 513, 594);
 		setTitle("HBase Client -- 詹才韬");
 		setLayout(new BorderLayout(1, 1));
 		add(panelNorth, BorderLayout.NORTH);
@@ -113,7 +117,6 @@ class HBaseClient extends JFrame
 					point.setY(e.getY());
 					point.calibrate2Clickable();  // 校准
 					queryRect.update(point);
-					//System.out.println(queryRect);
 					queryInteract.setText(queryRect.toString());
 				}
 			}
@@ -199,7 +202,9 @@ class HBaseClient extends JFrame
 					}
 					
 					// TODO: query, row scan + column filter
-					
+					long[] hilbert = null;
+					hilbert = getAllHilbertDistance((int)RectMinX, (int)RectMinY, (int)RectMaxX, (int)RectMaxY);
+					splitRange(hilbert);
 				}
 				catch (Exception exception)
 				{
@@ -210,5 +215,51 @@ class HBaseClient extends JFrame
 		}
 		return queryButton;
 	}
-
+	
+	private ArrayList<Integer> splitRange(long[] hilbert)
+	{
+		for(int i = 0; i < hilbert.length; ++i)
+		{
+			System.out.print(hilbert[i] + " ");
+		}
+		ArrayList<Integer> ranges = new ArrayList<Integer>();
+		try
+		{
+			for(int i = 0, j = 0; j < hilbert.length - 1; ++j)
+			{
+				if(hilbert[j + 1] - hilbert[j] == 1)
+				{
+					continue;
+				}
+				else
+				{
+					ranges.add(Integer.valueOf(i));
+					ranges.add(Integer.valueOf(j + 1));
+					i = j + 1;
+				}
+			}
+			System.out.println("\n" + ranges);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return ranges;
+	}
+	
+	private long[] getAllHilbertDistance(int minX, int minY, int maxX, int maxY)
+	{
+		int lenX = maxX - minX + 1;
+		int lenY = maxY - minY + 1;
+		long[] hilbert = new long[lenX*lenY];
+		for(int i = 0; i < lenY; ++i)
+		{
+			for(int j = 0; j < lenX; ++j)
+			{
+				hilbert[i * lenX + j] = HilbertCurve.encode(minX + i, minY + j, ORDER);
+			}
+		}
+		Arrays.sort(hilbert);
+		return hilbert;
+	}
 }

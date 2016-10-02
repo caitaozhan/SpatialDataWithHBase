@@ -78,7 +78,7 @@ public class Point
 	public void calibrate2Clickable()
 	{
 		m_x -= 1;
-		m_y -= 49;
+		m_y -= 57;
 	}
 
 	/*

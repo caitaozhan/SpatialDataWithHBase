@@ -12,15 +12,25 @@ public class QueryRect
 	}
 	
 	/**
-	 * update two points in a FIFO way
+	 * update the older point(a smaller id) with a new one
 	 * @param point, a new point to update QueryRect
 	 */
 	public void update(Point point)
 	{
-		point1 = null;
-		point1 = point2;
-		point2 = point;
-		reorganize();
+		if(point1.getID() < point2.getID())
+		{// point1 is older than point2
+			point1 = null;
+			point1 = point2;
+			point2 = point;
+			reorganize();
+		}
+		else
+		{// point2 is older than point1
+			point2 = null;
+			point2 = point1;
+			point1 = point;
+			reorganize();
+		}
 	}
 	
 	/**
