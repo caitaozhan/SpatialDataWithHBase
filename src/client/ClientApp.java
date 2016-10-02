@@ -182,16 +182,16 @@ class HBaseClient extends JFrame
 				{//Range: (10.0, 20.0)--(50.0, 60.0)
 					String queryText = queryInteract.getText();
 					double RectMinX, RectMinY, RectMaxX, RectMaxY;
-					String d = "([^\\d])(\\d+\\.\\d+)"; // can represent every double, but is enough in this case
-					String regex = ".*"+d+".*"+d+".*"+d+".*"+d+".*";
+					String d = "(\\d+\\.\\d+)"; // can't represent every double, but is enough in this case
+					String regex = ".*[^\\d]"+d+".*[^\\d]"+d+".*[^\\d]"+d+".*[^\\d]"+d+".*";
 					Pattern pattern = Pattern.compile(regex);
 					Matcher matcher = pattern.matcher(queryText);
 					if(matcher.find())
 					{
-						RectMinX = Integer.valueOf(matcher.group(2));
-						RectMinY = Integer.valueOf(matcher.group(4));
-						RectMaxX = Integer.valueOf(matcher.group(6));
-						RectMaxY = Integer.valueOf(matcher.group(8));
+						RectMinX = Double.valueOf(matcher.group(1));
+						RectMinY = Double.valueOf(matcher.group(2));
+						RectMaxX = Double.valueOf(matcher.group(3));
+						RectMaxY = Double.valueOf(matcher.group(4));
 					}
 					else
 					{
