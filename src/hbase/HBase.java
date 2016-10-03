@@ -21,6 +21,8 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Row;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.*;
+import org.apache.hadoop.hbase.filter.FilterList.Operator;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import client.Point;
@@ -42,7 +44,7 @@ public class HBase
 	 */
 	public static String generatePointRowKey(Point point)
 	{
-		int order = 9;  // x, y : (0, 2^9-1)
+		int order = 9;  // x, y : (0, 2^order-1)
 		StringBuffer rowKey = new StringBuffer();
 		int x = (int) point.getX();
 		int y = (int) point.getY();
@@ -98,8 +100,8 @@ public class HBase
 			String rowKey = generatePointRowKey(point);	
 			Put put = new Put(Bytes.toBytes(rowKey));
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyID), Bytes.toBytes(point.getStringID()));
-			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX), Bytes.toBytes(point.getStringX()));
-			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY), Bytes.toBytes(point.getStringY()));
+			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX), Bytes.toBytes(double2String(point.getX())));
+			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY), Bytes.toBytes(double2String(point.getY())));
 			batch.add(put);
 		}
 		Object[] results = new Object[batch.size()];
@@ -149,6 +151,32 @@ public class HBase
 		Connection connection = ConnectionFactory.createConnection(cfg);
 		Table table = connection.getTable(TableName.valueOf(tableName));
 		ArrayList<Point> queriedPoints = new ArrayList<Point>();
+		
+		FilterList filterList = new FilterList(Operator.MUST_PASS_ALL);
+		SingleColumnValueFilter filterMinX = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+				CompareFilter.CompareOp.GREATER_OR_EQUAL, 
+				new BinaryComparator(Bytes.toBytes(double2String(rectMinX))));
+		filterList.addFilter(filterMinX);
+					
+		SingleColumnValueFilter filterMaxX = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+				CompareFilter.CompareOp.LESS,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMaxX))));
+		filterList.addFilter(filterMaxX);
+		
+		SingleColumnValueFilter filterMinY = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+				CompareFilter.CompareOp.GREATER_OR_EQUAL,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMinY))));
+		filterList.addFilter(filterMinY);
+		
+		SingleColumnValueFilter filterMaxY = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+				CompareFilter.CompareOp.LESS,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMaxY))));
+		filterList.addFilter(filterMaxY);
+		
 		for(int i = 0, j = 1; j < ranges.size(); i+=2, j+=2)
 		{
 			String startStr = String.valueOf((hilbert[ranges.get(i).intValue()]));
@@ -166,10 +194,10 @@ public class HBase
 			endBuffer.append(new String(temp));
 			endBuffer.append(endStr);
 			
-			//System.out.println("\n" + startBuffer.toString() + " --> " + endBuffer.toString());
-						Scan scan = new Scan();
+			Scan scan = new Scan();
 			scan.setStartRow(Bytes.toBytes(startBuffer.toString()));
 			scan.setStopRow(Bytes.toBytes(endBuffer.toString()));
+			scan.setFilter(filterList);
 			
 			ResultScanner scanner = table.getScanner(scan);
 			for(Result result : scanner)
@@ -189,8 +217,6 @@ public class HBase
 						point.setY(y);
 					}
 					++k;
-					//System.out.println("Cell: " + cell + ", Value: " + 
-						//	Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
 				}
 				queriedPoints.add(point);
 			}
@@ -199,7 +225,6 @@ public class HBase
 		System.out.println("theoretical points = " + (int)(TOTAL_POINTS * ratio) + "\nreality points = " + queriedPoints.size());
 		return queriedPoints;
 	}
-
 	
 	//show all data, through HTable Scan
 	public static void scan(String tableName) throws IOException
@@ -249,18 +274,86 @@ public class HBase
 		System.out.println();
 	}
 	
-	public static void main(String [] args)
+	/**
+	 * only in this way can double(byte array) can compare fairly in HBase.
+	 * I have struggled this kind of bugs for a night: 60.0 < 500.0, but "60.0" > "500.0"
+	 * Pretty hard to debug for a HBase novice like me using SingleColumnValueFilter for the first time
+	 * 
+	 * 9.123  --> 009.123
+	 * 60.123 --> 060.123
+	 * @param bound, a double
+	 * @return bound, a String
+	 */
+	public static String double2String(double bound)
 	{
-		byte[] b1 = Bytes.toBytes(30.1110);
-		printBytes(b1);
+		int hundredDotIndex = 3;         // 123.5: a dot should be at index = 3
+		StringBuffer boundBuffer = new StringBuffer();
+		String boundStr = String.valueOf(bound);
+		for(int i = 0; i < boundStr.length(); ++i)
+		{
+			if(boundStr.charAt(i) == '.')
+			{
+				char[] ch = new char[hundredDotIndex - i];
+				Arrays.fill(ch, '0');
+				boundBuffer.append(ch);
+				break;
+			}
+		}
+		boundBuffer.append(boundStr);
+		return boundBuffer.toString();
+	}
+	
+	public static void main(String [] args) throws IOException
+	{
+		// 过滤：限定 (x, y)的取值范围
+		String tableName = new String("Spatial");
+		String columnFamily = new String("Point");
+		String qualifyX = new String("X");
+		String qualifyY = new String("Y");
+		double rectMinX = 255.0, rectMaxX = 511.0;
+		double rectMinY = 255.0, rectMaxY = 511.0;
 		
-		byte[] b2 = Bytes.toBytes(3.20);
-		printBytes(b2);
+		Connection connection = ConnectionFactory.createConnection(cfg);
+		Table table = connection.getTable(TableName.valueOf(tableName));
 		
-		byte[] b3 = Bytes.toBytes(String.valueOf(3000));
-		printBytes(b3);
+		FilterList filterList = new FilterList(Operator.MUST_PASS_ALL);
+		SingleColumnValueFilter filterMinX = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+				CompareFilter.CompareOp.GREATER_OR_EQUAL, 
+				new BinaryComparator(Bytes.toBytes(double2String(rectMinX))));
+		filterList.addFilter(filterMinX);
+					
+		SingleColumnValueFilter filterMaxX = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyX),
+				CompareFilter.CompareOp.LESS,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMaxX))));
+		filterList.addFilter(filterMaxX);
 		
-		byte[] b4 = Bytes.toBytes(String.valueOf(300.1));
-		printBytes(b4);
+		SingleColumnValueFilter filterMinY = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+				CompareFilter.CompareOp.GREATER_OR_EQUAL,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMinY))));
+		filterList.addFilter(filterMinY);
+		
+		SingleColumnValueFilter filterMaxY = new SingleColumnValueFilter(
+				Bytes.toBytes(columnFamily), Bytes.toBytes(qualifyY),
+				CompareFilter.CompareOp.LESS,
+				new BinaryComparator(Bytes.toBytes(double2String(rectMaxY))));
+		filterList.addFilter(filterMaxY);
+		
+		Scan scan = new Scan();
+		scan.setFilter(filterList);
+		ResultScanner results = table.getScanner(scan);
+		int counter = 0;
+		for(Result result : results)
+		{
+			++counter;
+			for(Cell cell : result.rawCells())
+			{
+				System.out.println("cell: " + cell + "; value: " 
+						+ Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
+			}
+		}
+		System.out.println("total = " + counter);
 	}
 }

@@ -62,7 +62,6 @@ class HBaseClient extends JFrame
 	private JButton queryButton;
 	private JPanel panelNorth;
 	private JPanel panelSouth;
-//	Thread thread;
 
 	public HBaseClient()
 	{
@@ -208,8 +207,10 @@ class HBaseClient extends JFrame
 					ArrayList<Point> queryResult = caitaoHBase.rangeQuery(
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y,
 							hilbert, ranges, RectMinX, RectMinY, RectMaxX, RectMaxY);
-					
-					System.out.println(queryResult);
+					for(int i = 0; i < queryResult.size(); ++i)
+					{
+						System.out.println(queryResult.get(i));
+					}
 				}
 				catch (Exception exception)
 				{
@@ -227,7 +228,8 @@ class HBaseClient extends JFrame
 		ArrayList<Integer> ranges = new ArrayList<Integer>();
 		try
 		{
-			for(int i = 0, j = 0; j < hilbert.length - 1; ++j)
+			int i, j;
+			for(i = 0, j = 0; j < hilbert.length - 1; ++j)
 			{
 				if(hilbert[j + 1] - hilbert[j] == 1)
 				{
@@ -240,7 +242,8 @@ class HBaseClient extends JFrame
 					i = j + 1;
 				}
 			}
-			//System.out.println("\n" + ranges);
+			ranges.add(Integer.valueOf(i)); // fix bug: the last range of hilbert
+			ranges.add(Integer.valueOf(j));
 		}
 		catch(Exception e)
 		{
@@ -258,7 +261,8 @@ class HBaseClient extends JFrame
 		{
 			for(int j = 0; j < lenX; ++j)
 			{
-				hilbert[i * lenX + j] = HilbertCurve.encode(minX + i, minY + j, ORDER);
+				//hilbert[i * lenX + j] = HilbertCurve.encode(minX + i, minY + j, ORDER);  // a terrible fucking bug...
+				hilbert[i * lenX + j] = HilbertCurve.encode(minX + j, minY + i, ORDER);
 			}
 		}
 		Arrays.sort(hilbert);
