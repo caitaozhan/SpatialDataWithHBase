@@ -20,8 +20,11 @@ Database: HBase-1.2.2
  3. rowkey = hilbertCode + ID. 16 charecters
 
 **HBase schema:**
+
 Column Family : Point
+
 Qualifier : ID, X, Y
+
 Time Stamp: system default
 
 eg.a spatial point (222.222, 333.333), assigned an ID=1. Shoud put 3 records in HBase
