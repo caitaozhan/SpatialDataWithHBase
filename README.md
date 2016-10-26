@@ -7,8 +7,6 @@ Operating system: deepin-15.3 (a beautiful desktop Linux distribution contribute
 
 Programming language: Java
 
-Operating system: deepin-15.2 (a beautiful desktop Linux distribution contributed by Chinese)
-
 File system: HDFS-2.6.4 (pseudo-distribution mode)
 
 Database: HBase-1.2.2
