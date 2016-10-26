@@ -76,7 +76,6 @@ public class HBase
 		if(admin.tableExists(tableName))
 		{
 			System.out.println("table Exists!");
-			System.exit(0);
 		}
 		else
 		{

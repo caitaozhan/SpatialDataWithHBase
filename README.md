@@ -3,7 +3,7 @@ Storing and retrieving spatial data in Hbase
 
 This is the curriculum design for software engineering
 
-Operating system: deepin-15.2 (a beautiful desktop Linux distribution contributed by Chinese)
+Operating system: deepin-15.3 (a beautiful desktop Linux distribution contributed by Chinese)
 
 Database: HBase-1.2.2
 

@@ -134,11 +134,14 @@ class HBaseClient extends JFrame
 				{
 					String string = editInsertNumber.getText();
 					int insertNum = Integer.valueOf(string);
+					long time1 = System.currentTimeMillis();
 					
 					caitaoHBase.insertRandomPoints(insertNum, MAX_X, MAX_Y,
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y, QUALIFY_ID);
 					
+					long time2 = System.currentTimeMillis();
 					System.out.println("Successfully inserted " + insertNum + " random points into HBase!");
+					System.out.println("Time = " + (time2-time1) + " milliseconds");
 				}
 				catch (NumberFormatException exception)
 				{
@@ -200,6 +203,7 @@ class HBaseClient extends JFrame
 					{
 						throw new Exception("No match");
 					}
+					long time1 = System.currentTimeMillis();
 					
 					long[] hilbert = null;
 					hilbert = getAllHilbertDistance((int)RectMinX, (int)RectMinY, (int)RectMaxX, (int)RectMaxY);
@@ -207,10 +211,13 @@ class HBaseClient extends JFrame
 					ArrayList<Point> queryResult = caitaoHBase.rangeQuery(
 							TABLE_NAME, COLUMN_FAMILY, QUALIFY_X, QUALIFY_Y,
 							hilbert, ranges, RectMinX, RectMinY, RectMaxX, RectMaxY);
+					
+					long time2 = System.currentTimeMillis();
 					for(int i = 0; i < queryResult.size(); ++i)
 					{
 						System.out.println(queryResult.get(i));
 					}
+					System.out.println("Time = " + (time2-time1) + " milliseconds");
 				}
 				catch (Exception exception)
 				{
